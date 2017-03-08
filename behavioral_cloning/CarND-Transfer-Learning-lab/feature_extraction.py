@@ -64,6 +64,7 @@ def main(_):
     nb_classes = len(np.unique(y_train))
 
     input_shape = X_train.shape[1:]
+    print(X_train.shape)
     inp = Input(shape=input_shape)
     x = Flatten()(inp)
     x = Dense(nb_classes, activation='softmax')(x)

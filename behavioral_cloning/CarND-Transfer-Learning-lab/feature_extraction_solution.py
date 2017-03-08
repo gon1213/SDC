@@ -49,6 +49,7 @@ def main(_):
 
     # define model
     input_shape = X_train.shape[1:]
+    print(input_shape)
     inp = Input(shape=input_shape)
     x = Flatten()(inp)
     x = Dense(nb_classes, activation='softmax')(x)
