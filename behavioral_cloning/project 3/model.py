@@ -18,7 +18,8 @@ import matplotlib.image as mpimg
 
 import progressbar as pb
 
-
+## this is the Nvidia network base on
+# http://images.nvidia.com/content/tegra/automotive/images/2016/solutions/pdf/end-to-end-dl-using-px.pdf
 def steering_model():
     model = Sequential()
     model.add(Lambda(lambda x: (x / 255.0) - 0.5, input_shape=(160,320,3)))
@@ -40,7 +41,7 @@ def steering_model():
     return model
 
 
-
+## I read the image and flip them 
 def image_process(db):
     path = db["path"].tolist()
     images = []
@@ -69,7 +70,7 @@ def image_process(db):
     images_set, steering_set = shuffle(images_ready, steering_ready)
     return images_set, steering_set
 
-
+## I use generator to run on my macbook air so it will not use all the memory
 def generator(x , y , batch_size):
     num_samples = len(x)
     while 1: # Loop forever so the generator never terminates
@@ -82,11 +83,16 @@ def generator(x , y , batch_size):
             X_train = np.array(images)
             y_train = np.array(angles)
             yield shuffle(X_train, y_train)
+
+
+# reading the data from the csv file and take the path and steering angle out from the csv
+#            
 sample_data_file = "driving_log.csv"
 sample_data = pd.read_csv(sample_data_file, sep = ",", skipinitialspace=True)
 
 angle_adjust = 0.21
 
+## I want to use all three camera and adjust the left and right steering angle
 center = sample_data[["center","steering"]]
 left = sample_data[["left","steering"]]
 right = sample_data[["right","steering"]]
@@ -98,7 +104,7 @@ center.columns=["path","steering"]
 left.columns=["path","steering"]
 right.columns=["path","steering"]
 
-
+## put toghter
 data = left.append(center).append(right)
 
 
@@ -112,11 +118,15 @@ x_test, y_test = image_process(center)
 train_generator = generator(x_train, y_train, batch)
 test_generator = generator(x_test, y_test, batch)
 
+## i use adam optimizer
+## for the validation I use mse, but the best validation for this project is actually running the car simulator 
+
 model = steering_model()
 model.compile(optimizer="adam", loss = "mse")
 history = model.fit_generator(train_generator, samples_per_epoch= len(x_train), validation_data=test_generator, 
                     nb_val_samples=len(x_test), nb_epoch=epoch)
-# model.fit(X_train,Y_train, validation_split = 0.2, shuffle = True, nb_epoch=epoch)
+
+
 model.save('model.h5')
 
 print("model trained")
